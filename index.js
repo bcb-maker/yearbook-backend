@@ -4,8 +4,15 @@ const app = express(); // cria a aplicação Express
 const PORT = 3000; // porta onde o servidor vai rodar localmente
 
 // rota GET na raiz — responde com JSON
+app.get('/', (req, res) => {
+  res.json({ mensagem: 'Yearbook API está no ar!🎓' });
+});
+
 app.get('/status', (req, res) => {
-  res.json({ mensagem: 'Yearbook API está no ar! TOP TOP🎓' });
+  res.json({
+    status: 'ok',
+    timestamp: new Date() // retorna o timestamp atual
+  });
 });
 
 // inicia o servidor localmente — na Vercel essa parte é pulada
