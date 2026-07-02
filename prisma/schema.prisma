@@ -20,18 +20,18 @@ model Aluno {
   nascimento    DateTime?
   role          Role       @default(USER)
   criadoEm      DateTime   @default(now())
+
   mensagens     Mensagem[]
 }
 
 model Mensagem {
-  id       Int      @id @default(autoincrement())
-  conteudo String
-  titulo   String
-  anonima  Boolean  @default(false)
-  curtidas Int      @default(0)
-  criadoEm DateTime @default(now())
-  alunoId  Int
-  autor    Aluno    @relation(fields: [alunoId], references: [id])
+  id        Int      @id @default(autoincrement())
+  texto     String
+  imagemUrl String?
+  criadoEm  DateTime @default(now())
+
+  autorId   Int
+  autor     Aluno    @relation(fields: [autorId], references: [id])
 }
 
 enum Role {
