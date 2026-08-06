@@ -1,10 +1,12 @@
+import 'dotenv/config';
 import express from 'express';
 import logger from './middlewares/logger.js';
+import tratarErro from './middlewares/erro.js';
 import alunosRouter from './routes/alunos.js';
 import mensagensRouter from './routes/mensagens.js';
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json()); // parseia JSON
 app.use(logger);         // registra o log de cada requisição
@@ -22,6 +24,8 @@ app.get('/status', (req, res) => {
 // rotas de alunos
 app.use('/alunos', alunosRouter);
 app.use('/mensagens', mensagensRouter);
+
+app.use(tratarErro);
 
 
 // inicia o servidor localmente

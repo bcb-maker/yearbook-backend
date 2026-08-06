@@ -1,78 +1,70 @@
 import prisma from '../prisma/client.js';
 
-// GET /mensagens — lista todas as mensagens (mais recentes primeiro)
-export async function listarMensagens(req, res) {
+// GET /mensagens — lista todas as mensagens
+export async function listarMensagens(req, res, next) {
   try {
     const mensagens = await prisma.mensagem.findMany({
-      orderBy: { criadoEm: 'desc' },
       include: {
-        autor: {
-          select: {
-            id: true,
-            nome: true,
-            fotoUrl: true,
-          },
+        remetente: {
+          select: { id: true, nome: true, fotoUrl: true },
+        },
+        destinatario: {
+          select: { id: true, nome: true, fotoUrl: true },
         },
       },
+      orderBy: { criadoEm: 'desc' },
     });
 
-    return res.status(200).json(mensagens);
-  } catch (error) {
-    return res.status(500).json({ erro: error.message });
+    res.json(mensagens);
+  } catch (erro) {
+    next(erro);
   }
 }
 
-// POST /mensagens — cria nova mensagem
-export async function criarMensagem(req, res) {
+// POST /mensagens — cria uma nova mensagem
+export async function criarMensagem(req, res, next) {
   try {
-    const { texto, imagemUrl, autorId } = req.body;
+    const { texto, remetenteId, destinatarioId } = req.body;
 
+    // Validação de campo obrigatório (Erro 400 - Esperado)
     if (!texto || texto.trim() === '') {
-      return res.status(400).json({
-        erro: 'O texto da mensagem não pode estar vazio.',
-      });
+      return res.status(400).json({ erro: 'O campo texto é obrigatório' });
     }
 
     const novaMensagem = await prisma.mensagem.create({
       data: {
         texto,
-        imagemUrl,
-        autorId: Number(autorId),
+        remetenteId: Number(remetenteId),
+        destinatarioId: Number(destinatarioId),
       },
       include: {
-        autor: {
-          select: {
-            id: true,
-            nome: true,
-            fotoUrl: true,
-          },
+        remetente: {
+          select: { id: true, nome: true, fotoUrl: true },
+        },
+        destinatario: {
+          select: { id: true, nome: true, fotoUrl: true },
         },
       },
     });
 
-    return res.status(201).json(novaMensagem);
-  } catch (error) {
-    return res.status(500).json({ erro: error.message });
+    res.status(201).json(novaMensagem);
+  } catch (erro) {
+    next(erro);
   }
 }
 
-// DELETE /mensagens/:id — remove mensagem
-export async function deletarMensagem(req, res) {
-  try {
-    const id = Number(req.params.id);
+// DELETE /mensagens/:id — deleta uma mensagem
+export async function deletarMensagem(req, res, next) {
+  const { id } = req.params;
 
+  try {
     await prisma.mensagem.delete({
-      where: { id },
+      where: { id: Number(id) },
     });
 
-    return res.status(204).send();
-  } catch (error) {
-    if (error.code === 'P2025') {
-      return res.status(204).json({
-        erro: 'Mensagem não encontrada',
-      });
-    }
-
-    return res.status(500).json({ erro: error.message });
+    res.status(204).end();
+  } catch (erro) {
+    // Mantém a captura do erro 404 esperado
+    res.status(404).json({ erro: 'Mensagem não encontrada' });
   }
 }
